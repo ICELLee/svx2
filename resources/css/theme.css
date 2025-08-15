@@ -1,0 +1,42 @@
+/* Tailwind v4: Theme-Tokens definieren -> erzeugt bg-card, text-muted, border-border, ... */
+@theme {
+    /* Light-Defaults (werden automatisch zu bg-*, text-*, border-* Utilities) */
+    --color-primary: 124 58 237;   /* #7c3aed */
+    --color-accent:  251 146 60;   /* #fb923c */
+
+    --color-bg:     245 246 250;
+    --color-card:   255 255 255;
+    --color-text:    15  17  23;
+    --color-border: 226 232 240;
+    --color-muted:  100 116 139;
+    --color-ring:   124  58 237;
+}
+
+/* Dark-Overrides (dein Toggle setzt/entfernt .dark auf <html>) */
+.dark {
+    --color-bg:      11  11  18;   /* #0b0b12 */
+    --color-card:    19  19  33;   /* #131321 */
+    --color-text:   255 255 255;
+    --color-border:  42  42  61;   /* #2a2a3d */
+    --color-muted:  154 160 174;   /* #9aa0ae */
+    --color-ring:   124  58 237;
+}
+
+/* Zusatz-Utilities, falls du sie brauchst */
+.text-gradient {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(90deg, rgb(var(--color-primary)), rgb(var(--color-accent)) 50%, rgb(var(--color-primary)));
+    background-size: 200% 100%;
+}
+
+.glass { @apply bg-card/70 backdrop-blur border border-border; }
+.card-hover { transition: transform .25s, box-shadow .25s; }
+.card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px -10px rgba(124,58,237,.35); }
+
+/* Optional: smooth transitions / reduced motion */
+.transition-smooth { transition: all .25s ease; }
+@media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition-duration: .01ms !important; }
+}

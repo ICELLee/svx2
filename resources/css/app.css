@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "./theme.css";
+
+/* deine Zusatz-Utilities (für den Fall der Fälle) */
+@layer utilities {
+    .bg-primary-10 { background-color: rgb(138 43 226 / 0.1); }
+    .hover\:bg-primary-10:hover { background-color: rgb(138 43 226 / 0.1); }
+}
