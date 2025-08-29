@@ -3,7 +3,7 @@
         <!-- Animated gradient top strip -->
         <div class="h-1 w-full bg-[linear-gradient(90deg,rgb(var(--color-primary)),rgb(var(--color-accent))_50%,rgb(var(--color-primary)))] bg-[length:200%_100%] animate-[svx-grad_8s_linear_infinite]" />
 
-        <!-- Toaster -->
+        <!-- Flash Toaster -->
         <transition name="fade">
             <div v-if="flashSuccess" class="fixed top-3 right-3 z-[70] rounded-xl border border-[rgb(34_197_94/0.30)] bg-[rgb(34_197_94/0.10)] px-4 py-2 text-[rgb(187_247_208)] shadow-lg backdrop-blur">
                 {{ flashSuccess }}
@@ -15,80 +15,111 @@
             </div>
         </transition>
 
-        <div class="relative flex">
-            <!-- Decorative blobs -->
-            <div aria-hidden class="pointer-events-none absolute -top-24 -left-24 h-80 w-80 rounded-full blur-3xl opacity-30 z-0
-                              bg-[radial-gradient(circle_at_30%_30%,rgb(var(--color-primary)/.35),transparent_60%)] animate-[svx-float_12s_ease-in-out_infinite]"></div>
-            <div aria-hidden class="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full blur-3xl opacity-25 z-0
-                              bg-[radial-gradient(circle_at_70%_70%,rgb(var(--color-accent)/.35),transparent_60%)] animate-[svx-float_14s_ease-in-out_infinite_reverse]"></div>
+        <div class="relative flex min-h-[100dvh]">
 
             <!-- Sidebar -->
             <aside
-                class="fixed md:static z-50 md:z-20 h-full md:h-auto w-[82vw] max-w-80 md:w-72 flex flex-col
-               bg-[rgb(var(--color-card))] border-r border-[rgb(var(--color-border))] relative shadow-[0_10px_40px_-10px_rgba(124,58,237,.25)]
-               transition-transform duration-300 ease-out will-change-transform"
+                class="fixed md:sticky md:top-0 md:self-start z-50 md:z-20 h-[100dvh] w-[82vw] max-w-80 md:w-72 flex flex-col bg-[rgb(var(--color-card))] border-r border-[rgb(var(--color-border))] relative shadow-[0_10px_40px_-10px_rgba(124,58,237,.25)] transition-transform duration-300 ease-out will-change-transform"
                 :class="mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
             >
                 <!-- Brand -->
                 <div class="p-4">
-                    <div class="font-extrabold text-2xl text-transparent bg-clip-text
-                      bg-[linear-gradient(90deg,rgb(var(--color-primary)),rgb(var(--color-accent))_50%,rgb(var(--color-primary)))]
-                      bg-[length:200%_100%] animate-[svx-grad_8s_linear_infinite] select-none">
+                    <div class="font-extrabold text-2xl text-transparent bg-clip-text bg-[linear-gradient(90deg,rgb(var(--color-primary)),rgb(var(--color-accent))_50%,rgb(var(--color-primary)))] bg-[length:200%_100%] animate-[svx-grad_8s_linear_infinite] select-none">
                         StreamVaultX
                     </div>
                     <div class="mt-1 text-[11px] tracking-wide text-[rgb(var(--color-muted))]">Admin & Tools</div>
                 </div>
 
-                <!-- Profile -->
+                <!-- Profile (improved with Breeze route) -->
                 <div class="px-4 pb-3">
-                    <div class="flex items-center gap-3 rounded-2xl border border-[rgb(var(--color-border))] bg-[rgb(var(--color-card)/.82)] backdrop-blur p-3 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-[0_10px_40px_-10px_rgba(124,58,237,.35)]">
-                        <div class="relative h-10 w-10 rounded-full grid place-items-center border border-[rgb(var(--color-border))] bg-[rgb(var(--color-card))] overflow-hidden">
+                    <div
+                        class="group relative flex items-center gap-3 rounded-2xl border border-[rgb(var(--color-border))] bg-[rgb(var(--color-card)/.82)] backdrop-blur p-3 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-[0_10px_40px_-10px_rgba(124,58,237,.35)]"
+                    >
+                        <!-- Avatar (clickable -> Profile) -->
+                        <Link
+                            :href="route('profile')"
+                            class="relative h-11 w-11 shrink-0 rounded-full grid place-items-center bg-[rgb(var(--color-card))] overflow-hidden profile-glow transition hover:scale-105"
+                        >
                             <img v-if="avatarUrl" :src="avatarUrl" alt="Avatar" class="h-full w-full object-cover" />
                             <span v-else class="text-sm font-semibold">{{ initials }}</span>
-                            <span class="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-[rgb(34_197_94)] ring-2 ring-[rgb(var(--color-card))] animate-[svx-pulse_2.2s_ease-in-out_infinite]" />
-                        </div>
-                        <div class="min-w-0">
-                            <div class="font-medium truncate">{{ user?.name ?? '—' }}</div>
-                            <div class="text-xs text-[rgb(var(--color-muted))] truncate">{{ user?.email ?? '' }}</div>
-                        </div>
-                    </div>
-
-                    <div class="mt-2 flex items-center gap-2">
-                        <Link
-                            href="/profile"
-                            class="flex-1 text-xs px-3 py-2 rounded-xl border border-[rgb(var(--color-border))] bg-[rgb(var(--color-card))] hover:bg-[rgb(var(--color-primary)/0.10)] transition-all duration-200"
-                            @click="closeMobile"
-                        >
-                            Profil
+                            <span
+                                class="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-[rgb(34_197_94)] ring-2 ring-[rgb(var(--color-card))] animate-[svx-pulse_2.2s_ease-in-out_infinite]"
+                            />
                         </Link>
-                        <button
-                            @click="logout"
-                            class="text-xs px-3 py-2 rounded-xl border border-[rgb(var(--color-border))] bg-[rgb(var(--color-card))] hover:bg-[rgb(var(--color-primary)/0.10)] transition-all duration-200"
-                        >
-                            Abmelden
-                        </button>
+
+                        <!-- User info -->
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <div class="font-medium truncate">{{ user?.name ?? '—' }}</div>
+                                <span
+                                    v-if="isAdmin"
+                                    class="text-[10px] px-2 py-0.5 rounded-full bg-[rgb(var(--color-primary)/.12)] border border-[rgb(var(--color-border))]"
+                                >
+                    Admin
+                </span>
+                            </div>
+                            <div class="text-xs text-[rgb(var(--color-muted))] truncate">{{ user?.email ?? '' }}</div>
+
+                            <!-- Actions -->
+                            <div class="mt-2 flex items-center gap-2">
+                                <Link
+                                    :href="route('profile.edit')"
+                                    class="btn-neon text-xs px-2.5 py-1.5 rounded-lg"
+                                >
+                                    Profil
+                                </Link>
+
+                                <button
+                                    @click="logout"
+                                    class="text-xs px-2.5 py-1.5 rounded-lg border border-[rgb(var(--color-border))] bg-[rgb(var(--color-card))] hover:bg-[rgb(var(--color-primary)/0.10)] transition-all duration-200"
+                                >
+                                    Abmelden
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
+
                 <!-- Nav -->
                 <nav class="relative p-2 overflow-y-auto scrollbar-custom grow">
-                    <span aria-hidden class="absolute left-0 top-0 h-full w-[2px] bg-[linear-gradient(180deg,rgb(var(--color-primary)),rgb(var(--color-accent)))] opacity-60"></span>
+                    <span aria-hidden class="absolute left-0 top-0 h-full w-[2px] bg-[linear-gradient(180deg,rgb(var(--color-primary)),rgb(var(--color-accent)))] opacity-60" />
 
-                    <ul class="space-y-1">
-                        <template v-if="!isAdmin">
-                            <NavItem to="/dashboard"         :active="isActive('/dashboard')"         icon="dashboard" @close="closeMobile">User Dashboard</NavItem>
-                            <NavItem to="/tools/bonushunt"   :active="isActive('/tools/bonushunt')"   icon="dice"      @close="closeMobile">BonusHunt</NavItem>
-                            <NavItem to="/tools/slottracker" :active="isActive('/tools/slottracker')" icon="chart"     @close="closeMobile">Slot-Tracker</NavItem>
-                            <NavItem to="/tools/redeem"      :active="isActive('/tools/redeem')"      icon="ticket"    @close="closeMobile">Code redeem</NavItem>
-                        </template>
-                        <template v-else>
+                    <!-- User Section -->
+                    <NavHeading v-if="!isAdmin" label="User" />
+                    <ul v-if="!isAdmin" class="space-y-1">
+                        <NavItem to="/dashboard"         :active="isActive('/dashboard')"         icon="dashboard" @close="closeMobile">User Dashboard</NavItem>
+                        <NavItem to="/tools/bonushunt"   :active="isActive('/tools/bonushunt')"   icon="dice"      @close="closeMobile">BonusHunt</NavItem>
+                        <NavItem to="/tools/slottracker" :active="isActive('/tools/slottracker')" icon="chart"     @close="closeMobile">Slot-Tracker</NavItem>
+                        <NavItem to="/tools/redeem"      :active="isActive('/tools/redeem')"      icon="ticket"    @close="closeMobile">Code redeem</NavItem>
+                        <NavItem to="/tickets"           :active="isActive('/tickets')"           icon="ticket"    @close="closeMobile">Tickets</NavItem>
+                    </ul>
+
+                    <!-- Admin Section -->
+                    <template v-else>
+                        <NavHeading label="Admin" />
+                        <ul class="space-y-1">
                             <NavItem to="/admin"        :active="isActive('/admin')"        icon="dashboard" glow @close="closeMobile">Admin Dashboard</NavItem>
                             <NavItem to="/admin/users"  :active="isActive('/admin/users')"  icon="users"     glow @close="closeMobile">Accounts</NavItem>
                             <NavItem to="/admin/slots"  :active="isActive('/admin/slots')"  icon="db"        glow @close="closeMobile">Slots DB</NavItem>
                             <NavItem to="/admin/codes"  :active="isActive('/admin/codes')"  icon="key"       glow @close="closeMobile">Code Generator</NavItem>
-                        </template>
-                    </ul>
+                            <NavItem to="/admin/tickets":active="isActive('/admin/tickets')"icon="ticket"    glow @close="closeMobile">Tickets</NavItem>
+                        </ul>
+
+                        <NavHeading class="mt-4" label="Tools" />
+                        <ul class="space-y-1">
+                            <NavItem to="/tools/bonushunt"   :active="isActive('/tools/bonushunt')"   icon="dice"   @close="closeMobile">BonusHunt</NavItem>
+                            <NavItem to="/tools/slottracker" :active="isActive('/tools/slottracker')" icon="chart"  @close="closeMobile">Slot-Tracker</NavItem>
+                            <NavItem to="/tools/redeem"      :active="isActive('/tools/redeem')"      icon="ticket" @close="closeMobile">Code redeem</NavItem>
+                        </ul>
+                    </template>
+
                 </nav>
+
+                <!-- Sidebar bottom meta (sticks to bottom) -->
+                <div class="mt-auto p-3 border-t border-[rgb(var(--color-border))] text-[10px] text-[rgb(var(--color-muted))]">
+                    v1.0 · Laravel + Vue · © {{ new Date().getFullYear() }}
+                </div>
             </aside>
 
             <!-- Mobile overlay -->
@@ -100,11 +131,11 @@
             />
 
             <!-- Main -->
-            <div class="relative z-10 flex-1 flex flex-col">
+            <div class="relative z-10 flex-1 flex flex-col min-w-0">
                 <header class="sticky top-0 z-30 px-4 py-3 flex items-center justify-between border-b border-[rgb(var(--color-border))] bg-[rgb(var(--color-card)/.82)] backdrop-blur shadow-[0_10px_30px_-15px_rgba(0,0,0,.35)]">
                     <div class="flex items-center gap-2">
                         <button
-                            class="md:hidden px-3 py-2 rounded-xl border border-[rgb(var(--color-border))] bg-[rgb(var(--color-card))] hover:bg-[rgb(var(--color-primary)/0.10)] transition-all duration-200"
+                            class="md:hidden px-3 py-2 rounded-xl border border-[rgb(var(--color-border))] bg-[rgb(var(--color-card))] hover:bg-[rgb(var(--color-primary)/0.10)] active:scale-[.98] transition-all duration-200"
                             @click="mobileOpen = true"
                             aria-label="Menü öffnen"
                         >
@@ -139,7 +170,22 @@ import { computed, onMounted, ref, watch, h, defineComponent } from 'vue'
 import { usePage, Link, router } from '@inertiajs/vue3'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
-/** --------- NavItem ohne JSX (nur h()) ---------- */
+/** ---------- Category Heading ---------- */
+const NavHeading = defineComponent({
+    name: 'NavHeading',
+    props: { label: { type: String, required: true } },
+    setup(props) {
+        return () => h('div', { class: 'px-3 pt-3 pb-2' }, [
+            h('div', { class: 'flex items-center gap-2 text-[10px] uppercase tracking-wider text-[rgb(var(--color-muted))]' }, [
+                h('span', { class: 'h-[1px] w-4 bg-[rgb(var(--color-border))]' }),
+                h('span', props.label),
+                h('span', { class: 'h-[1px] grow bg-[rgb(var(--color-border))]' }),
+            ])
+        ])
+    }
+})
+
+/** ---------- NavItem (render via h()) ---------- */
 const NavItem = defineComponent({
     name: 'NavItem',
     props: {
@@ -178,20 +224,10 @@ const NavItem = defineComponent({
                     onClick: () => emit('close'),
                 }, {
                     default: () => [
-                        h('svg', { class: 'h-4 w-4 opacity-90', viewBox: '0 0 24 24', fill: 'currentColor' }, [
-                            h('path', { d: iconPath.value }),
-                        ]),
+                        h('svg', { class: 'h-4 w-4 opacity-90', viewBox: '0 0 24 24', fill: 'currentColor' }, [h('path', { d: iconPath.value })]),
                         h('span', { class: 'text-sm' }, slots.default ? slots.default() : ''),
-                        props.active
-                            ? h('span', {
-                                class: 'absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r bg-[linear-gradient(180deg,rgb(var(--color-primary)),rgb(var(--color-accent)))]'
-                            })
-                            : null,
-                        h('span', {
-                            'aria-hidden': 'true',
-                            class: 'pointer-events-none absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300',
-                            style: 'background: radial-gradient(180px 180px at var(--mx,-100px) var(--my,-100px), rgba(124,58,237,.12), rgba(251,146,60,.10) 35%, transparent 60%);'
-                        })
+                        props.active ? h('span', { class: 'absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r bg-[linear-gradient(180deg,rgb(var(--color-primary)),rgb(var(--color-accent)))]' }) : null,
+                        h('span', { 'aria-hidden': 'true', class: 'pointer-events-none absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300', style: 'background: radial-gradient(180px 180px at var(--mx,-100px) var(--my,-100px), rgba(124,58,237,.12), rgba(251,146,60,.10) 35%, transparent 60%);' })
                     ]
                 })
             ])
@@ -208,56 +244,35 @@ const isAdmin = computed(() => {
 /* Theme */
 const theme = ref('dark')
 const themeClass = computed(() => (theme.value === 'dark' ? 'dark' : ''))
+
 onMounted(() => {
     const saved = localStorage.getItem('theme')
     theme.value = saved ?? 'dark'
     applyTheme()
     enableHighlightMouseTracking()
 })
-function setTheme(val) {
-    theme.value = val
-    localStorage.setItem('theme', val)
-    applyTheme()
-}
-function applyTheme() {
-    const root = document.documentElement
-    theme.value === 'dark' ? root.classList.add('dark') : root.classList.remove('dark')
-}
+function setTheme(val){ theme.value = val; localStorage.setItem('theme', val); applyTheme() }
+function applyTheme(){ const root = document.documentElement; theme.value === 'dark' ? root.classList.add('dark') : root.classList.remove('dark') }
 
 /* Mobile sidebar */
 const mobileOpen = ref(false)
 function closeMobile(){ mobileOpen.value = false }
 
 /* Active helper */
-function isActive(prefix) {
-    const path = window.location.pathname
-    return path === prefix || path.startsWith(prefix + '/')
-}
+function isActive(prefix){ const path = window.location.pathname; return path === prefix || path.startsWith(prefix + '/') }
 
 /* Avatar/Initials */
-const initials = computed(() => {
-    const n = user.value?.name ?? ''
-    const parts = n.trim().split(/\s+/).slice(0, 2)
-    return parts.map(p => p[0]?.toUpperCase() ?? '').join('')
-})
+const initials = computed(() => { const n = user.value?.name ?? ''; const parts = n.trim().split(/\s+/).slice(0, 2); return parts.map(p => p[0]?.toUpperCase() ?? '').join('') })
 const avatarUrl = computed(() => user.value?.avatar || null)
 
 /* Logout */
-function logout() {
-    router.post('/logout', {}, { preserveScroll: true })
-}
+function logout(){ router.post('/logout', {}, { preserveScroll: true }) }
 
 /* Flash */
 const flashSuccess = ref(null)
-const flashError = ref(null)
-watch(() => page.props.flash?.success, (v) => {
-    flashSuccess.value = v
-    if (v) setTimeout(() => (flashSuccess.value = null), 3000)
-})
-watch(() => page.props.flash?.error, (v) => {
-    flashError.value = v
-    if (v) setTimeout(() => (flashError.value = null), 3000)
-})
+const flashError   = ref(null)
+watch(() => page.props.flash?.success, v => { flashSuccess.value = v; if (v) setTimeout(() => (flashSuccess.value = null), 3000) })
+watch(() => page.props.flash?.error,   v => { flashError.value   = v; if (v) setTimeout(() => (flashError.value   = null), 3000) })
 
 /* Cursor highlight vars */
 function enableHighlightMouseTracking(){
@@ -278,6 +293,66 @@ function enableHighlightMouseTracking(){
 /* transitions */
 .fade-enter-active, .fade-leave-active { transition: opacity .2s ease }
 .fade-enter-from, .fade-leave-to { opacity: 0 }
+/* === Neon Additions === */
+
+/* Neon-Karten */
+.neon-card {
+    background: rgb(var(--color-card) / 0.08);
+    border: 1px solid rgba(124,58,237,.4);
+    border-radius: 1rem;
+    box-shadow:
+        0 0 6px rgba(124,58,237,.35),
+        0 0 12px rgba(251,146,60,.25);
+    transition: all .3s ease;
+}
+.neon-card:hover {
+    box-shadow:
+        0 0 10px rgba(124,58,237,.55),
+        0 0 20px rgba(251,146,60,.35);
+}
+
+/* Neon für Sidebar-Nav */
+.highlight-effect {
+    position: relative;
+    overflow: hidden;
+}
+.highlight-effect::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    border-radius: inherit;
+    background: radial-gradient(120px 120px at var(--mx,-100px) var(--my,-100px),
+    rgba(124,58,237,.20),
+    rgba(251,146,60,.15) 40%,
+    transparent 70%);
+    transition: opacity .3s;
+}
+.highlight-effect:hover::before { opacity: 1 }
+
+/* Neon-Schrift Gradient */
+.text-gradient {
+    background: linear-gradient(90deg, rgb(var(--color-primary)), rgb(var(--color-accent)));
+    background-size: 200% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: svx-grad 6s ease infinite;
+}
+
+/* Buttons Neon */
+.btn-neon {
+    @apply px-3 py-2 rounded-xl font-medium text-white;
+    background: linear-gradient(90deg, rgba(124,58,237,.9), rgba(251,146,60,.9));
+    box-shadow: 0 0 6px rgba(124,58,237,.6), 0 0 12px rgba(251,146,60,.4);
+    transition: all .3s ease;
+}
+.btn-neon:hover { transform: translateY(-2px) scale(1.02); }
+
+/* Profil Avatar Glow */
+.profile-glow {
+    box-shadow: 0 0 8px rgba(124,58,237,.6), 0 0 16px rgba(251,146,60,.4);
+}
 
 /* keyframes */
 @keyframes svx-grad { 0% {background-position:0% 50%} 50% {background-position:100% 50%} 100% {background-position:0% 50%} }
@@ -285,18 +360,10 @@ function enableHighlightMouseTracking(){
 @keyframes svx-pageIn { from {opacity:0; transform:translateY(4px)} to {opacity:1; transform:translateY(0)} }
 @keyframes svx-pulse { 0%,100% {transform:scale(1); box-shadow:0 0 0 0 rgba(124,58,237,0)} 50% {transform:scale(1.06); box-shadow:0 0 14px 2px rgba(124,58,237,.35)} }
 
-.scrollbar-custom{
-    scrollbar-width: thin;
-    scrollbar-color: rgba(124,58,237,.5) transparent;
-}
+.scrollbar-custom{ scrollbar-width: thin; scrollbar-color: rgba(124,58,237,.5) transparent; }
 .scrollbar-custom::-webkit-scrollbar { width: 8px }
-.scrollbar-custom::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(124,58,237,.6), rgba(251,146,60,.5));
-    border-radius: 999px;
-}
+.scrollbar-custom::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(124,58,237,.6), rgba(251,146,60,.5)); border-radius: 999px }
 .scrollbar-custom::-webkit-scrollbar-track { background: transparent }
 
-@media (prefers-reduced-motion: reduce){
-    * { animation: none !important; transition-duration: .01ms !important }
-}
+@media (prefers-reduced-motion: reduce){ * { animation: none !important; transition-duration: .01ms !important } }
 </style>

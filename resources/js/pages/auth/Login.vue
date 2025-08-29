@@ -31,14 +31,17 @@ const submit = () => {
     <AuthBase title="Log in to your account" description="Enter your email and password below to log in">
         <Head title="Log in" />
 
-        <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">
+        <!-- Status -->
+        <div v-if="status" class="mb-4 text-center text-sm font-medium text-emerald-500">
             {{ status }}
         </div>
 
+        <!-- Form -->
         <form @submit.prevent="submit" class="flex flex-col gap-6">
-            <div class="grid gap-6">
+            <div class="grid gap-6 neon-card p-6 rounded-2xl">
+                <!-- Email -->
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                    <Label for="email" class="text-sm font-medium text-gradient">Email address</Label>
                     <Input
                         id="email"
                         type="email"
@@ -48,14 +51,16 @@ const submit = () => {
                         autocomplete="email"
                         v-model="form.email"
                         placeholder="email@example.com"
+                        class="neon-input"
                     />
                     <InputError :message="form.errors.email" />
                 </div>
 
+                <!-- Password -->
                 <div class="grid gap-2">
                     <div class="flex items-center justify-between">
-                        <Label for="password">Password</Label>
-                        <TextLink v-if="canResetPassword" :href="route('password.request')" class="text-sm" :tabindex="5">
+                        <Label for="password" class="text-sm font-medium text-gradient">Password</Label>
+                        <TextLink v-if="canResetPassword" :href="route('password.request')" class="text-sm hover:text-primary" :tabindex="5">
                             Forgot password?
                         </TextLink>
                     </div>
@@ -67,27 +72,37 @@ const submit = () => {
                         autocomplete="current-password"
                         v-model="form.password"
                         placeholder="Password"
+                        class="neon-input"
                     />
                     <InputError :message="form.errors.password" />
                 </div>
 
+                <!-- Remember me -->
                 <div class="flex items-center justify-between">
-                    <Label for="remember" class="flex items-center space-x-3">
-                        <Checkbox id="remember" v-model="form.remember" :tabindex="3" />
+                    <Label for="remember" class="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox id="remember" v-model="form.remember" :tabindex="3" class="neon-checkbox" />
                         <span>Remember me</span>
                     </Label>
                 </div>
 
-                <Button type="submit" class="mt-4 w-full" :tabindex="4" :disabled="form.processing">
+                <!-- Submit -->
+                <Button
+                    type="submit"
+                    class="btn-neon mt-4 w-full flex justify-center items-center gap-2"
+                    :tabindex="4"
+                    :disabled="form.processing"
+                >
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
                     Log in
                 </Button>
             </div>
 
+            <!-- Bottom link -->
             <div class="text-center text-sm text-muted-foreground">
                 Don't have an account?
-                <TextLink :href="route('register')" :tabindex="5">Sign up</TextLink>
+                <TextLink :href="route('register')" :tabindex="5" class="hover:text-primary">Sign up</TextLink>
             </div>
         </form>
     </AuthBase>
 </template>
+

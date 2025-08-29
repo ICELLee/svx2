@@ -39,22 +39,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/user/api/extension-tokens', [ExtensionTokenController::class, 'store']);
     Route::delete('/user/api/extension-tokens/{extensionToken}', [ExtensionTokenController::class, 'destroy']);
 });
-Route::get('/ping', function () {
-    return response()->json([
-        'ok' => true,
-        'env' => app()->environment(),
-        'ts' => now()->toIso8601String(),
-    ]);
-});
 
-// Optional: Ping mit Token-Prüfung (Bearer via Sanctum)
-Route::middleware('auth:sanctum')->get('/ping-auth', function (Request $request) {
-    return response()->json([
-        'ok' => true,
-        'user_id' => $request->user()->id,
-        'ts' => now()->toIso8601String(),
-    ]);
-});
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');

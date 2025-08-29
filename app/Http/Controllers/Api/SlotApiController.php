@@ -3,12 +3,40 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Slot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;  // <- WICHTIG!
 use Illuminate\Support\Facades\Log;
 
 class SlotApiController extends Controller
 {
+    public function show(string $slug)
+    {
+        $user = User::where('live_slug', $slug)->firstOrFail();
+
+        $cacheKey = "slot:current:user:{$user->id}";
+        $key = Cache::get($cacheKey);
+
+        $slot = null;
+        if ($key) {
+            $slot = Slot::where('key', $key)->first();
+        }
+
+        // Debug-Ausgabe
+        if (!$slot) {
+            return response()->json([
+                'debug' => 'Kein Slot gefunden',
+                'cacheKey' => $cacheKey,
+                'key' => $key,
+            ]);
+        }
+
+        return view('extension.slot', [
+            'owner' => $user,
+            'slot'  => $slot,
+        ]);
+    }
+
     public function store(Request $request)
     {
         try {

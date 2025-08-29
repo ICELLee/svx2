@@ -3,20 +3,38 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\Slot;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SlotLiveController extends Controller
 {
-    public function show(Request $req, string $slug) {
+    public function show(string $slug)
+    {
         $user = User::where('live_slug', $slug)->firstOrFail();
 
-        // TODO: Hier holst du die "current slot"-Daten des Users,
-        // z.B. aus Redis/DB: CurrentSlot::forUser($user->id) …
-        // Für jetzt nur eine simple Blade-Ansicht.
-        return view('slot.live', [
+        $cacheKey = "slot:current:user:{$user->id}";
+        $key = Cache::get($cacheKey);
+
+        $slot = null;
+        if ($key) {
+            $slot = Slot::where('key', $key)->first();
+        }
+
+        return view('extension.slot', [
             'owner' => $user,
-            // 'currentSlot' => $slotData,
+            'slot'  => $slot,
+            'slug'  => $slug,
         ]);
+    }
+
+
+    public function current(string $slug)
+    {
+        $user = User::where('live_slug', $slug)->firstOrFail();
+        $key = Cache::get("slot:current:user:{$user->id}");
+
+        return response()->json(['key' => $key]);
     }
 }

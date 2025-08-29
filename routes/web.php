@@ -13,7 +13,6 @@ use App\Http\Controllers\User\BonusHuntApiController;
 use App\Http\Controllers\User\DashboardController as UserDashboard;
 use App\Http\Controllers\User\RedeemCodeController;
 use App\Http\Controllers\User\SlotLookupController;
-use App\Http\Controllers\User\SlotStatController;
 use App\Models\Slot;
 use App\Models\SlotUserStat;
 use Illuminate\Support\Facades\Cache;
@@ -21,6 +20,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use App\Models\UserToolEntitlement;
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\Admin\TicketController as AdminTicket;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,26 +34,60 @@ Route::get('/o/bonushunt/{token}/partial',        [BH::class, 'partial'])->name(
 Route::get('/o/bonushunt/{token}/stats',          [BH::class, 'stats'])->name('bonushunt.public.stats');
 Route::get('/api/bonus-hunt-updated-at/{token}',  [BH::class, 'updatedAt'])->name('bonushunt.public.updated');
 
-Route::middleware('auth')->get('/tools/slottracker', [SlotTrackerController::class, 'index'])
+/*
+|--------------------------------------------------------------------------
+| Tickets (User + Admin)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+    // User Tickets
+    Route::get('/profile', fn () => Inertia::render('Profile/Index'))->name('profile');
+    Route::get('/tickets', [TicketController::class,'index'])->name('tickets.index');
+    Route::get('/tickets/create', [TicketController::class,'create'])->name('tickets.create');
+    Route::post('/tickets', [TicketController::class,'store'])->name('tickets.store');
+    Route::get('/tickets/{ticket}', [TicketController::class,'show'])->name('tickets.show');
+    Route::post('/tickets/{ticket}/reply', [TicketController::class,'reply'])->name('tickets.reply');
+
+    // Admin Tickets
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
+        Route::get('/tickets', [AdminTicket::class,'index'])->name('admin.tickets.index');
+        Route::get('/tickets/{ticket}', [AdminTicket::class,'show'])->name('admin.tickets.show');
+        Route::post('/tickets/{ticket}/claim', [AdminTicket::class,'claim'])->name('admin.tickets.claim');
+        Route::put('/tickets/{ticket}', [AdminTicket::class,'update'])->name('admin.tickets.update');
+        Route::post('/tickets/{ticket}/reply', [AdminTicket::class, 'reply'])->name('admin.tickets.reply');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| SlotTracker – Seite & API (gesperrt auf tool:slottracker)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])
+    ->get('/tools/slottracker', fn () => Inertia::render('Tools/SlotTracker'))
     ->name('tools.slottracker');
 
-Route::middleware('auth')->prefix('user/api')->group(function () {
+Route::middleware(['auth','tool:slottracker'])->prefix('user/api')->group(function () {
     Route::get   ('/extension-tokens',      [SlotTrackerController::class, 'index']);
     Route::post  ('/extension-tokens',      [SlotTrackerController::class, 'store']);
     Route::delete('/extension-tokens/{id}', [SlotTrackerController::class, 'destroy']);
 });
 
-Route::middleware(['auth'])->get('/api/slot/current', function () {
-    $userId = auth()->id();
-    $key = Cache::get("slot:current:user:{$userId}");
-    return response()->json(['key' => $key]);
-});
+// aktueller Slot-Key (nur eingeloggte User)
+Route::middleware(['auth','tool:slottracker'])
+    ->get('/api/slot/current', function () {
+        $userId = auth()->id();
+        $key = Cache::get("slot:current:user:{$userId}");
+        return response()->json(['key' => $key]);
+    });
 
 /*
 |--------------------------------------------------------------------------
 | Slot Live + Partial
 |--------------------------------------------------------------------------
 */
+
+// 🔹 Partial (nur intern, für eingeloggte User)
 Route::middleware('auth')->get('/slot/partial/{key}', function (string $key) {
     $norm = Str::of($key)->lower()->replace(['_', ' '], '-');
 
@@ -63,10 +99,8 @@ Route::middleware('auth')->get('/slot/partial/{key}', function (string $key) {
 
     $q->orWhereRaw('LOWER(REPLACE(REPLACE(name,"_","-")," ","-")) = ?', [$norm]);
 
-    // Slot finden oder auf letzten als Fallback
     $slot = $q->first() ?: Slot::latest()->first();
 
-    // 👇 persönliche Werte des eingeloggten Users einspeisen
     if ($slot) {
         $stat = SlotUserStat::where('user_id', auth()->id())
             ->where('slot_id', $slot->id)
@@ -79,28 +113,34 @@ Route::middleware('auth')->get('/slot/partial/{key}', function (string $key) {
         }
     }
 
-    // Achtung: Pfad muss zu resources/views/extension/slot/_slotbox.blade.php passen
     return view('extension._slotbox', ['slot' => $slot]);
-});
+})->name('slot.partial');
 
-Route::get('/slot/live', function () {
-    $slot = Slot::latest()->first();
-    return view('extension.slot', compact('slot'));
-})->name('slot.live')->middleware('auth');
+// 🔹 Öffentliche Live-Seite (für OBS, kein Login nötig)
+Route::get('/slot/live/{slug}', [\App\Http\Controllers\Public\SlotLiveController::class, 'show'])
+    ->name('slot.live');
 
-// One-time Extension-Setup (signed)
+// 🔹 Öffentliche API: aktueller Slot (OBS pollt das)
+Route::get('/slot/live/{slug}/current', [SlotLiveController::class, 'current'])
+    ->name('slot.current');
+
+/*
+|--------------------------------------------------------------------------
+| One-time Extension-Setup (signed)
+|--------------------------------------------------------------------------
+*/
 Route::get('/o/extension/setup/{link:ulid}', [SlotTrackerController::class, 'setupBlade'])
     ->name('extension.setup')
     ->middleware('signed');
 
 /*
 |--------------------------------------------------------------------------
-| Auth: Tools (Inertia)
+| Auth: Tools (Inertia) – Bonushunt gesperrt
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
-    Route::get('/tools/bonushunt', fn () => Inertia::render('Tools/BonusHunt'))->name('tools.bonushunt');
-    Route::get('/tools/slottracker', fn () => Inertia::render('Tools/SlotTracker'))->name('tools.slottracker');
+    Route::get('/tools/bonushunt', fn () => Inertia::render('Tools/BonusHunt'))
+        ->name('tools.bonushunt');
 });
 
 Route::middleware(['auth','verified'])->group(function () {
@@ -113,11 +153,8 @@ Route::middleware(['auth','verified'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    if (! auth()->check()) return redirect()->route('login');
-    return auth()->user()->hasRole('admin')
-        ? redirect()->route('admin.index')
-        : redirect()->route('dashboard');
-})->name('home');
+    return view('welcome'); // dein Landing-HTML oder Blade
+})->name('landing');
 
 /*
 |--------------------------------------------------------------------------
@@ -125,35 +162,71 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
-    Route::middleware(['auth'])->get('/tools/redeem', fn () => Inertia::render('Tools/RedeemCode'))->name('tools.redeem');
+    Route::get('/tools/redeem', fn () => Inertia::render('Tools/RedeemCode'))->name('tools.redeem');
     Route::get('/dashboard', [UserDashboard::class, 'index'])->name('dashboard');
 });
 
 /*
 |--------------------------------------------------------------------------
-| User API (Bonus Hunts)
+| User API
 |--------------------------------------------------------------------------
 */
 Route::prefix('user/api')->middleware(['web','auth'])->group(function () {
     Route::get('/slots/search', [SlotLookupController::class, 'search']);
-    Route::get   ('/bonus-hunts',                        [BonusHuntApiController::class, 'index']);
-    Route::post  ('/bonus-hunts',                        [BonusHuntApiController::class, 'store']);
-    Route::put   ('/bonus-hunts/{hunt}',                 [BonusHuntApiController::class, 'update']);
-    Route::delete('/bonus-hunts/{hunt}',                 [BonusHuntApiController::class, 'destroy']);
     Route::post('/codes/redeem', [RedeemCodeController::class,'redeem']);
-    Route::get   ('/bonus-hunts/{hunt}/entries',         [BonusHuntApiController::class, 'entries']);
-    Route::post  ('/bonus-hunts/{hunt}/entries',         [BonusHuntApiController::class, 'addEntry']);
-    Route::put   ('/bonus-hunts/{hunt}/entries/{entry}', [BonusHuntApiController::class, 'updateEntry']);
-    Route::delete('/bonus-hunts/{hunt}/entries/{entry}', [BonusHuntApiController::class, 'deleteEntry']);
+    Route::get('/entitlements/{tool}', function (string $tool) {
+        $key = Str::of($tool)->lower()->replace(' ', '')->toString();
+        $ent = UserToolEntitlement::where('user_id', auth()->id())
+            ->where('tool', $key)
+            ->first();
 
-    Route::get   ('/bonus-hunts/{hunt}/link',            [BonusHuntApiController::class, 'link']);
+        $now = now();
+        $active = false;
+        $expiresAt = null;
+
+        if ($ent) {
+            if (is_null($ent->expires_at)) {
+                $active = true;
+            } else {
+                $active = $ent->expires_at->gte($now);
+                $expiresAt = $ent->expires_at->toIso8601String();
+            }
+        }
+
+        $remaining = null;
+        if ($active && $expiresAt) {
+            $remaining = \Carbon\Carbon::parse($expiresAt)->diffInSeconds($now);
+        }
+
+        $soonDays = (int) request('soon_days', 3);
+        $soon = false;
+        if ($active && $expiresAt && $soonDays > 0) {
+            $soon = \Carbon\Carbon::parse($expiresAt)->lte($now->copy()->addDays($soonDays));
+        }
+
+        return response()->json([
+            'tool'              => $key,
+            'active'            => $active,
+            'expires_at'        => $expiresAt,
+            'remaining_seconds' => $remaining,
+            'soon'              => $soon,
+            'now'               => $now->toIso8601String(),
+        ]);
+    });
+
+    Route::middleware('tool:bonushunt')->group(function () {
+        Route::get   ('/bonus-hunts',                        [BonusHuntApiController::class, 'index']);
+        Route::post  ('/bonus-hunts',                        [BonusHuntApiController::class, 'store']);
+        Route::put   ('/bonus-hunts/{hunt}',                 [BonusHuntApiController::class, 'update']);
+        Route::delete('/bonus-hunts/{hunt}',                 [BonusHuntApiController::class, 'destroy']);
+        Route::get   ('/bonus-hunts/{hunt}/entries',         [BonusHuntApiController::class, 'entries']);
+        Route::post  ('/bonus-hunts/{hunt}/entries',         [BonusHuntApiController::class, 'addEntry']);
+        Route::put   ('/bonus-hunts/{hunt}/entries/{entry}', [BonusHuntApiController::class, 'updateEntry']);
+        Route::delete('/bonus-hunts/{hunt}/entries/{entry}', [BonusHuntApiController::class, 'deleteEntry']);
+        Route::get   ('/bonus-hunts/{hunt}/link',            [BonusHuntApiController::class, 'link']);
+    });
 });
 
-Route::controller(SlotLiveController::class)->group(function () {
-    Route::get('/slot/live/{slug}', 'show')->name('slot.live');         // HTML-Seite mit Box
-    Route::get('/slot/current/{slug}', 'current')->name('slot.current'); // JSON: { key: ... }
-    Route::get('/slot/partial/{key}', 'partial')->name('slot.partial');  // HTML-Snippet
-});
 /*
 |--------------------------------------------------------------------------
 | Admin API (Slots + Bonus-Hunt-Entries)
@@ -167,10 +240,12 @@ Route::prefix('admin/api')->middleware(['web','auth','role:admin'])->group(funct
     Route::delete('/slots/{slot}',        [SlotAdminApiController::class,'destroy']);
     Route::patch ('/slots/{slot}/toggle', [SlotAdminApiController::class,'toggle']);
     Route::post  ('/slots/import-url',    [SlotAdminApiController::class,'importFromUrl']);
-    Route::get   ('/codes',                 [PromoCodeAdminController::class,'index']);
-    Route::post  ('/codes',                 [PromoCodeAdminController::class,'store']);
-    Route::patch ('/codes/{code}/lock',     [PromoCodeAdminController::class,'lock']);
-    Route::patch ('/codes/{code}/unlock',   [PromoCodeAdminController::class,'unlock']);
+
+    Route::get   ('/codes',               [PromoCodeAdminController::class,'index']);
+    Route::post  ('/codes',               [PromoCodeAdminController::class,'store']);
+    Route::patch ('/codes/{code}/lock',   [PromoCodeAdminController::class,'lock']);
+    Route::patch ('/codes/{code}/unlock', [PromoCodeAdminController::class,'unlock']);
+
     Route::get   ('/bonus-hunts',                           [BonusHuntEntryAdminController::class, 'hunts']);
     Route::get   ('/bonus-hunts/{hunt}/entries',            [BonusHuntEntryAdminController::class, 'index']);
     Route::post  ('/bonus-hunts/{hunt}/entries',            [BonusHuntEntryAdminController::class, 'store']);

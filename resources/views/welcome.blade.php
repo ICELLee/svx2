@@ -1,3 +1,4 @@
+@verbatim
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -606,6 +607,7 @@
     </style>
 </head>
 <body>
+
 <canvas id="bgNet" aria-hidden="true"></canvas>
 <div class="grad-strip" aria-hidden="true"></div>
 
@@ -1367,5 +1369,6 @@
 
 
 </body>
+@endverbatim
 </html>
- 
+

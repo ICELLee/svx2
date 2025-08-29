@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-
+use App\Models\Concerns\HasToolAccess;
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
-    use HasApiTokens;
+    use HasApiTokens, HasToolAccess;
 
     // Beziehungen/Rollen
     public function roles(){ return $this->belongsToMany(\App\Models\Role::class); }
@@ -21,11 +21,22 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'public_id', // <- wichtig
+        'public_id',
+        'country',
+        'street',
+        'house_number',
+        'postal_code',
+        'phone',
+        'avatar',
     ];
+
 
     protected $hidden = ['password','remember_token'];
 
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
+    }
     protected function casts(): array
     {
         return [

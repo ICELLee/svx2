@@ -1,8 +1,29 @@
+/* resources/css/app.css */
+
+/* 1. Tailwind laden */
 @import "tailwindcss";
+
+/* 2. Dein Theme-File mit Farben, Components & Utilities */
 @import "./theme.css";
 
-/* deine Zusatz-Utilities (für den Fall der Fälle) */
+/* 3. Falls nötig: weitere Custom Utilities */
 @layer utilities {
+    /* Beispiel: transparente Primary-Hintergründe */
     .bg-primary-10 { background-color: rgb(138 43 226 / 0.1); }
     .hover\:bg-primary-10:hover { background-color: rgb(138 43 226 / 0.1); }
+
+    /* Kleine Extras */
+    .scale-hover {
+        @apply transition-transform duration-300;
+    }
+    .scale-hover:hover {
+        @apply scale-105;
+    }
+    .fade-in {
+        animation: fadeIn .4s ease-in-out both;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
 }

@@ -3,14 +3,25 @@
 namespace App\Http\Controllers\Tools;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema; // ← NEU
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+
+// ← NEU
 
 class SlotTrackerController extends Controller
 {
     public function index(Request $request)
     {
         $user = $request->user();
+
+        // Falls slug fehlt → einmalig erzeugen
+        if (Schema::hasColumn('users', 'live_slug') && empty($user->live_slug)) {
+            $user->forceFill([
+                'live_slug' => Str::random(20),
+            ])->save();
+        }
 
         $tokens = $user->tokens()
             ->select('id','name','abilities','last_used_at','created_at')
@@ -21,18 +32,24 @@ class SlotTrackerController extends Controller
                 return $t;
             });
 
-        // live_url nur liefern, wenn Spalte existiert und Wert da ist
-        $liveUrl = null;
-        if (Schema::hasColumn('users', 'live_slug') && !empty($user->live_slug)) {
-            $liveUrl = route('slot.live', ['slug' => $user->live_slug]);
-        }
-
         return response()->json([
             'tokens'   => $tokens,
-            'live_url' => $liveUrl,
+            'live_url' => $user->live_slug
+                ? route('slot.live', ['slug' => $user->live_slug])
+                : null,
         ]);
     }
 
+    public function show(string $slug)
+    {
+        $user = User::where('live_slug', $slug)->firstOrFail();
+
+        // Hier kannst du z. B. eine spezielle View/Blade/Inertia-Seite rendern
+        // die die Live-Slot Anzeige für den User zeigt.
+        return view('slottracker.live', [
+            'user' => $user,
+        ]);
+    }
     public function store(Request $request)
     {
         $request->validate([

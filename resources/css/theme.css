@@ -1,42 +1,303 @@
-/* Tailwind v4: Theme-Tokens definieren -> erzeugt bg-card, text-muted, border-border, ... */
+/* resources/css/theme.css */
+
+/* === Tailwind v4 Theme Tokens === */
 @theme {
-    /* Light-Defaults (werden automatisch zu bg-*, text-*, border-* Utilities) */
-    --color-primary: 124 58 237;   /* #7c3aed */
-    --color-accent:  251 146 60;   /* #fb923c */
+    --color-primary: 124 58 237;   /* Neon-Lila */
+    --color-accent:  251 146 60;   /* Neon-Orange */
 
-    --color-bg:     245 246 250;
-    --color-card:   255 255 255;
-    --color-text:    15  17  23;
-    --color-border: 226 232 240;
-    --color-muted:  100 116 139;
-    --color-ring:   124  58 237;
+    /* Light */
+    --color-background: 245 246 250;
+    --color-card:       255 255 255;
+    --color-border:     226 232 240;
+    --color-muted:      100 116 139;
+    --color-text:        15  17  23;
 }
 
-/* Dark-Overrides (dein Toggle setzt/entfernt .dark auf <html>) */
+/* === Darkmode Overrides === */
 .dark {
-    --color-bg:      11  11  18;   /* #0b0b12 */
-    --color-card:    19  19  33;   /* #131321 */
-    --color-text:   255 255 255;
-    --color-border:  42  42  61;   /* #2a2a3d */
-    --color-muted:  154 160 174;   /* #9aa0ae */
-    --color-ring:   124  58 237;
+    --color-background:  20 2 20;   /* tiefes violett-blau */
+    --color-card:        25 20 50;  /* leicht heller als Hintergrund */
+    --color-border:      120 90 180;/* neon-violett als Border */
+    --color-muted:       180 185 200;
+    --color-text:        240 240 255;
 }
 
-/* Zusatz-Utilities, falls du sie brauchst */
-.text-gradient {
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    background-image: linear-gradient(90deg, rgb(var(--color-primary)), rgb(var(--color-accent)) 50%, rgb(var(--color-primary)));
-    background-size: 200% 100%;
+/* === Base Layer === */
+@layer base {
+    body {
+        @apply bg-background text-text transition-colors duration-700 ease-in-out;
+        font-family: 'Inter', sans-serif;
+    }
+
+    html, body, #app { min-height: 100%; }
+
+    h1,h2,h3,h4,h5,h6 {
+        @apply font-bold;
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        background-image: linear-gradient(
+            90deg,
+            rgb(var(--color-primary)),
+            rgb(var(--color-accent)) 50%,
+            rgb(var(--color-primary))
+        );
+        background-size: 200% 100%;
+        animation: gradientShift 6s ease infinite;
+    }
 }
 
-.glass { @apply bg-card/70 backdrop-blur border border-border; }
-.card-hover { transition: transform .25s, box-shadow .25s; }
-.card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px -10px rgba(124,58,237,.35); }
+/* === Komponenten === */
+@layer components {
+    .neon-card {
+        background: rgb(var(--color-card) / 0.05);
+        border: 1px solid rgba(124,58,237,.5);
+        border-radius: 1rem;
+        box-shadow:
+            0 0 8px rgba(124,58,237,.4),
+            0 0 16px rgba(251,146,60,.25);
+        transition: all .3s ease;
+    }
+    .neon-card:hover {
+        box-shadow:
+            0 0 12px rgba(124,58,237,.6),
+            0 0 24px rgba(251,146,60,.35);
+    }
 
-/* Optional: smooth transitions / reduced motion */
-.transition-smooth { transition: all .25s ease; }
-@media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; transition-duration: .01ms !important; }
+    .btn-neon {
+        @apply px-4 py-2 rounded-lg font-medium text-white;
+        background: linear-gradient(90deg, rgba(124,58,237,.9), rgba(251,146,60,.9));
+        box-shadow: 0 0 8px rgba(124,58,237,.6), 0 0 16px rgba(251,146,60,.4);
+        transition: all .3s ease;
+    }
+    .btn-neon:hover { transform: translateY(-2px) scale(1.03); }
+
+    .btn-neon-sm {
+        @apply px-3 py-1.5 rounded-lg text-xs text-white;
+        background: linear-gradient(90deg, rgba(124,58,237,.8), rgba(251,146,60,.8));
+        box-shadow: 0 0 6px rgba(124,58,237,.5);
+    }
+
+    .btn-danger-sm {
+        @apply px-3 py-1.5 rounded-lg text-xs font-semibold;
+        background: rgba(239,68,68,.15);
+        border: 1px solid rgba(239,68,68,.5);
+        color: #ef4444;
+        box-shadow: 0 0 8px rgba(239,68,68,.4);
+    }
+
+    .hover-glow:hover {
+        background: rgba(124,58,237,.1);
+        box-shadow: 0 0 10px rgba(124,58,237,.4), 0 0 20px rgba(251,146,60,.3);
+    }
+    .neon-card {
+        background: rgb(var(--color-card) / 0.05);
+        border: 1px solid rgba(124,58,237,.4);
+        border-radius: 1rem;
+        box-shadow:
+            0 0 6px rgba(124,58,237,.4),
+            0 0 12px rgba(251,146,60,.25);
+        transition: all .3s ease;
+    }
+    .neon-card:hover {
+        box-shadow:
+            0 0 10px rgba(124,58,237,.6),
+            0 0 20px rgba(251,146,60,.4);
+    }
+
+    .neon-input {
+        @apply w-full px-3 py-2 rounded-lg border;
+        background: rgb(var(--color-background) / 0.6);
+        border-color: rgba(124,58,237,.4);
+        transition: all .3s ease;
+    }
+    .neon-input:focus {
+        outline: none;
+        box-shadow: 0 0 8px rgba(124,58,237,.6), 0 0 16px rgba(251,146,60,.4);
+        border-color: rgba(124,58,237,.6);
+    }
+
+    .btn-neon {
+        @apply px-4 py-2 rounded-lg font-medium text-white;
+        background: linear-gradient(90deg, rgba(124,58,237,.9), rgba(251,146,60,.9));
+        box-shadow: 0 0 8px rgba(124,58,237,.5), 0 0 16px rgba(251,146,60,.3);
+        transition: all .3s ease;
+    }
+    .btn-neon:hover { transform: translateY(-2px) scale(1.02); }
+
+    .btn-neon-sm {
+        @apply px-3 py-1.5 rounded-lg text-sm text-white;
+        background: linear-gradient(90deg, rgba(124,58,237,.8), rgba(251,146,60,.8));
+        box-shadow: 0 0 6px rgba(124,58,237,.4);
+    }
+
+    .btn-outline-sm {
+        @apply px-3 py-1.5 rounded-lg text-sm;
+        border: 1px solid rgba(124,58,237,.5);
+        transition: all .3s ease;
+    }
+    .btn-outline-sm:hover {
+        background: rgba(124,58,237,.1);
+        box-shadow: 0 0 8px rgba(124,58,237,.4);
+    }
+
+    .btn-danger-sm {
+        @apply px-3 py-1.5 rounded-lg text-sm;
+        border: 1px solid rgba(239,68,68,.6);
+        color: #ef4444;
+        transition: all .3s ease;
+    }
+    .btn-danger-sm:hover {
+        background: rgba(239,68,68,.15);
+        box-shadow: 0 0 10px rgba(239,68,68,.4);
+    }
+    .neon-card {
+        background: rgb(var(--color-card) / 0.05);
+        border: 1px solid rgba(124,58,237,.4);
+        border-radius: 1rem;
+        box-shadow:
+            0 0 6px rgba(124,58,237,.4),
+            0 0 12px rgba(251,146,60,.25);
+        transition: all .3s ease;
+    }
+    .neon-card:hover {
+        box-shadow:
+            0 0 10px rgba(124,58,237,.6),
+            0 0 20px rgba(251,146,60,.4);
+    }
+
+    .neon-input {
+        @apply w-full px-4 py-2 rounded-xl border transition-all;
+        background: rgb(var(--color-background) / 0.6);
+        border-color: rgba(124,58,237,.5);
+    }
+    .neon-input:focus {
+        outline: none;
+        box-shadow: 0 0 10px rgba(124,58,237,.6), 0 0 16px rgba(251,146,60,.4);
+        border-color: rgba(124,58,237,.7);
+    }
+
+    .btn-neon {
+        @apply px-4 py-2 rounded-xl font-medium text-white;
+        background: linear-gradient(90deg, rgba(124,58,237,.9), rgba(251,146,60,.9));
+        box-shadow: 0 0 8px rgba(124,58,237,.5), 0 0 16px rgba(251,146,60,.3);
+        transition: all .3s ease;
+    }
+    .btn-neon:hover { transform: translateY(-2px) scale(1.02); }
+    .neon-card {
+        background: rgb(var(--color-card) / 0.08);
+        border: 1px solid rgba(124,58,237,.35);
+        box-shadow: 0 0 8px rgba(124,58,237,.3), 0 0 14px rgba(251,146,60,.25);
+        transition: all .3s ease;
+    }
+    .neon-card:hover {
+        box-shadow: 0 0 12px rgba(124,58,237,.5), 0 0 20px rgba(251,146,60,.35);
+    }
+
+    .neon-input {
+        @apply w-full px-3 py-2 rounded-xl border bg-background transition-all;
+        border-color: rgba(124,58,237,.35);
+    }
+    .neon-input:focus {
+        outline: none;
+        box-shadow: 0 0 6px rgba(124,58,237,.5), 0 0 10px rgba(251,146,60,.35);
+        border-color: rgb(var(--color-primary));
+    }
+
+    .btn-neon {
+        background: linear-gradient(90deg, rgba(124,58,237,.9), rgba(251,146,60,.9));
+        box-shadow: 0 0 8px rgba(124,58,237,.6), 0 0 14px rgba(251,146,60,.4);
+        transition: all .3s ease;
+        color: #fff;
+    }
+    .btn-neon:hover {
+        transform: translateY(-2px) scale(1.02);
+    }
+
+    .neon-checkbox {
+        border: 2px solid rgba(124,58,237,.6);
+    }
+    .neon-checkbox:checked {
+        background: linear-gradient(90deg, rgba(124,58,237,.9), rgba(251,146,60,.9));
+        border: none;
+    }
+
+    .input {
+        @apply w-full px-4 py-2 rounded-lg border border-border/50
+        focus:border-primary focus:ring-2 focus:ring-primary/50
+        transition-all duration-300 ease-in-out bg-background/70;
+    }
+
+    .btn {
+        @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg border
+        transition-all duration-300 ease-in-out active:scale-95 select-none;
+    }
+
+    .btn-primary {
+        @apply text-white border-transparent bg-primary;
+        box-shadow: 0 0 10px rgba(124,58,237,.7),
+        0 0 20px rgba(124,58,237,.4);
+    }
+    .btn-primary:hover {
+        box-shadow: 0 0 15px rgba(124,58,237,.9),
+        0 0 30px rgba(251,146,60,.6);
+        transform: scale(1.05);
+    }
+
+    .btn-outline {
+        @apply border border-primary text-primary;
+        box-shadow: 0 0 8px rgba(124,58,237,.4);
+    }
+
+    .btn-danger {
+        @apply text-red-500 border border-red-500;
+        box-shadow: 0 0 8px rgba(239,68,68,.7);
+    }
+
+    /* Neon Karten */
+    .card {
+        @apply rounded-xl border border-border p-4 transition-all duration-300;
+        background: rgb(var(--color-card) / 0.1);
+        box-shadow: 0 0 15px rgba(124,58,237,.4);
+    }
+
+    .card-hover:hover {
+        box-shadow: 0 0 20px rgba(124,58,237,.8),
+        0 0 40px rgba(251,146,60,.6);
+        transform: translateY(-4px) scale(1.02);
+    }
 }
+
+/* === Extras === */
+@layer utilities {
+    .text-gradient {
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        background-image: linear-gradient(
+            90deg,
+            rgb(var(--color-primary)),
+            rgb(var(--color-accent)) 50%,
+            rgb(var(--color-primary))
+        );
+        background-size: 200% 100%;
+        animation: gradientShift 6s ease infinite;
+    }
+
+    .fade-in-up { animation: fadeInUp .5s ease-out both; }
+    .hover-scale { transition: transform .3s; }
+    .hover-scale:hover { transform: scale(1.05); }
+}
+
+/* === Keyframes === */
+@keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
